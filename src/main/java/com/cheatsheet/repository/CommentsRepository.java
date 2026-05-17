@@ -20,9 +20,8 @@ public class CommentsRepository {
 	List<CommentsBean> allComments = new ArrayList<>();
 	Map<String, CommentsBean> commentMap = new HashMap<>();
 
-	String sql = "SELECT c.*, u.username FROM comments c "
-		     + "JOIN users u ON c.user_id = u.id "
-		     + "WHERE c.snippets_id = ? "
+	String sql = "SELECT c.*, u.username FROM comments c " + "JOIN users u ON c.user_id = u.id "
+		     + "WHERE c.snippets_id = ? AND deleted_at IS NULL "
 		     + "ORDER BY c.created_at ASC";
 
 	try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
@@ -90,6 +89,7 @@ public class CommentsRepository {
 	    return 0;
 	}
     }
+
 //
 //    public int replyComments(CommentsBean obj) {
 //	String sql = "INSERT INTO comments (id,comment_text,snippets_id,user_id,parent_comments_id) values (?,?,?,?,?)";
@@ -110,5 +110,35 @@ public class CommentsRepository {
 //
 //	return i;
 //    }
+    public int softDeleteComment(CommentsBean obj) {
+	String sql = "UPDATE comments SET deleted_at = NOW() WHERE id = ? AND user_id=?";
+	int i = 0;
+	Connection con = DBConnection.getConnection();
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, obj.getId());
+	    ps.setString(2, obj.getUserId());
+	    i = ps.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return i;
+    }
 
+    public int restoreComment(CommentsBean obj) {
+	String sql = "UPDATE comments SET deleted_at = NULL WHERE id = ? AND user_id=?";
+	int i = 0;
+	Connection con = DBConnection.getConnection();
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, obj.getId());
+	    ps.setString(2, obj.getUserId());
+	    i = ps.executeUpdate();
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+
+	return i;
+
+    }
 }

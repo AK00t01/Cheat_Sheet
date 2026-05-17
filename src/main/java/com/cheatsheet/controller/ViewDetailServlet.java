@@ -56,6 +56,7 @@ public class ViewDetailServlet extends HttpServlet {
 	if (id != null && !id.isBlank()) {
 	    if (id != null && !id.isEmpty()) {
 		// 1. Get or create a Set of viewed snippet IDs from the session
+		@SuppressWarnings("unchecked")
 		Set<String> viewedSnippets = (Set<String>) session.getAttribute("viewedSnippets");
 
 		if (viewedSnippets == null) {

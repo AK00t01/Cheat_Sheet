@@ -50,8 +50,7 @@ public class CommentsServlet extends HttpServlet {
 	int i = 0;
 	if (commentText == null || commentText.isBlank()) {
 	    request.getSession().setAttribute("error", "Comment cannot be empty.");
-	    response.sendRedirect("view?id="
-				  + snippetsId);
+	    response.sendRedirect("view?id=" + snippetsId);
 	    return;
 	}
 
@@ -78,8 +77,7 @@ public class CommentsServlet extends HttpServlet {
 	    request.getSession().setAttribute("error", "Failed to post comment.");
 	}
 
-	response.sendRedirect("view?id="
-			      + snippetsId);
+	response.sendRedirect("view?id=" + snippetsId);
 
     }
 }

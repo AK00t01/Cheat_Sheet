@@ -1,6 +1,20 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<div class="mb-3">
-    <div class="d-flex align-items-start">
+
+<div class="mb-3" id="commentWrapper-${currentComment.id}">
+    
+<div id="commentUndoAlert-${currentComment.id}" class="alert alert-secondary py-2 px-3 d-none align-items-center justify-content-between shadow-sm border small">
+    <div>
+        <i class="bi bi-trash3 me-1"></i> 
+        <span>Comment deleted. </span>
+        <span id="commentCountdown-${currentComment.id}" class="text-danger fw-bold ms-1">(10s remaining)</span>
+    </div>
+    <button class="btn btn-sm btn-link text-primary fw-bold text-decoration-none p-0" 
+            onclick="undoCommentDelete('${currentComment.id}')">
+        Undo
+    </button>
+</div>
+
+    <div class="d-flex align-items-start" id="commentCard-${currentComment.id}">
         <div class="flex-shrink-0">
             <i class="bi bi-person-circle fs-3 text-secondary"></i>
         </div>
@@ -26,6 +40,13 @@
                                 <li>
                                     <a class="dropdown-item text-primary" href="edit-comment?id=${currentComment.id}">
                                         <i class="bi bi-pencil-square me-2"></i> Edit
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="javascript:void(0);" 
+                                       onclick="initiateCommentDelete('${currentComment.id}')">
+                                        <i class="bi bi-trash me-2"></i> Delete
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>

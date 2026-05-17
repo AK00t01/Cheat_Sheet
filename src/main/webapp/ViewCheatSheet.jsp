@@ -157,46 +157,186 @@
             </div>
         </div>
     </div>
+<script>
+// ==========================================
+// 1. GLOBAL TRACKING MAPS FOR TIMERS
+// ==========================================
+let activeCommentTimers = {};
+let activeCommentIntervals = {};
+let snippetUndoTimeout;
 
-    <script>
-        // Copy to Clipboard Logic
-        function copyCode() {
-            const codeText = document.getElementById("snippetCode").innerText;
-            const btn = document.getElementById("copyBtn");
-            navigator.clipboard.writeText(codeText).then(() => {
-                const original = btn.innerHTML;
-                btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
-                btn.classList.replace('btn-outline-light', 'btn-success');
-                setTimeout(() => {
-                    btn.innerHTML = original;
-                    btn.classList.replace('btn-success', 'btn-outline-light');
-                }, 2000);
+// ==========================================
+// 2. COMMENT SOFT-DELETE & UNDO LOGIC
+// ==========================================
+function initiateCommentDelete(commentId) {
+    const cardElement = document.getElementById('commentCard-' + commentId);
+    const alertElement = document.getElementById('commentUndoAlert-' + commentId);
+    const countdownElement = document.getElementById('commentCountdown-' + commentId);
+    
+    // Swap components visually
+    cardElement.classList.add('d-none');
+    alertElement.classList.remove('d-none');
+    alertElement.classList.add('d-flex');
+
+    // Initialize countdown variable
+    let timeLeft = 10;
+    countdownElement.innerText = "(" + timeLeft + "s remaining)";
+    // Start a 1-second repeating interval to update the countdown text
+    activeCommentIntervals[commentId] = setInterval(function() {
+        timeLeft--;
+        if (timeLeft > 0) {
+        	countdownElement.innerText = "(" + timeLeft + "s remaining)";
+        	} else {
+            clearInterval(activeCommentIntervals[commentId]);
+            delete activeCommentIntervals[commentId];
+        }
+    }, 1000);
+
+    // Set final 10-second absolute execution timeout
+    activeCommentTimers[commentId] = setTimeout(function() {
+        executeCommentDatabaseAction(commentId, 'delete');
+        
+        // Remove the element completely from the webpage DOM
+        const wrapper = document.getElementById('commentWrapper-' + commentId);
+        if (wrapper) wrapper.remove();
+        
+        // Clean up tracking references
+        delete activeCommentTimers[commentId];
+        if (activeCommentIntervals[commentId]) {
+            clearInterval(activeCommentIntervals[commentId]);
+            delete activeCommentIntervals[commentId];
+        }
+    }, 10000); 
+}
+
+function undoCommentDelete(commentId) {
+    // Abort the 10-second DB delete action
+    if (activeCommentTimers[commentId]) {
+        clearTimeout(activeCommentTimers[commentId]);
+        delete activeCommentTimers[commentId];
+    }
+    
+    // Abort the 1-second interval loop text updater
+    if (activeCommentIntervals[commentId]) {
+        clearInterval(activeCommentIntervals[commentId]);
+        delete activeCommentIntervals[commentId];
+    }
+    
+    const cardElement = document.getElementById('commentCard-' + commentId);
+    const alertElement = document.getElementById('commentUndoAlert-' + commentId);
+    
+    // Swap elements back to show original comment bubble safely
+    alertElement.classList.remove('d-flex');
+    alertElement.classList.add('d-none');
+    cardElement.classList.remove('d-none');
+}
+
+function executeCommentDatabaseAction(commentId, actionType) {
+    let params = new URLSearchParams();
+    params.append('id', commentId);
+    params.append('action', actionType);
+
+    fetch('modify-comment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error("Database synchronization failed for action: " + actionType);
+        }
+    })
+    .catch(error => console.error("Network sync error:", error));
+}
+
+function toggleReplyForm(commentId) {
+    const form = document.getElementById('replyForm-' + commentId);
+    form.classList.toggle('d-none');
+    if (!form.classList.contains('d-none')) {
+        form.querySelector('input').focus();
+    }
+}
+
+// ==========================================
+// 3. SNIPPET (CHEATSHEET) SOFT-DELETE LOGIC
+// ==========================================
+function requestDelete(snippetId) {
+    // Dim the main snippet card to show it's pending deletion
+    const card = document.querySelector('.card.shadow-sm.mb-4');
+    card.style.transition = 'opacity 0.5s';
+    card.style.opacity = '0.2';
+    card.style.pointerEvents = 'none';
+
+    // Show the Snippet Undo Toast banner
+    const toastEl = document.getElementById('deleteToast');
+    const toast = new bootstrap.Toast(toastEl, { autohide: false });
+    toast.show();
+
+    // Fire actual DB delete query if they don't click undo within 10 seconds
+    snippetUndoTimeout = setTimeout(() => {
+        fetch('delete-snippet?id=' + snippetId, { method: 'POST' })
+            .then(() => {
+                window.location.href = 'home?msg=Deleted';
             });
-        }
+    }, 10000);
+}
 
-        // Bookmark Toggle Logic (AJAX)
-        function toggleBookmark(snippetId) {
-            const icon = document.getElementById('bookmarkIcon');
-            fetch('bookmark?id=' + snippetId, { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "added") {
-                    icon.classList.replace('bi-heart', 'bi-heart-fill');
-                } else {
-                    icon.classList.replace('bi-heart-fill', 'bi-heart');
-                }
-            })
-            .catch(() => alert("Please login to bookmark!"));
-        }
+function undoDelete(snippetId) {
+    // Clear out execution timer
+    clearTimeout(snippetUndoTimeout);
+    
+    // Hide Toast banner UI and restore card view state
+    const toastEl = document.getElementById('deleteToast');
+    const toast = bootstrap.Toast.getInstance(toastEl);
+    if (toast) toast.hide();
 
-        // Reply Form Toggle Logic
-        function toggleReplyForm(commentId) {
-            const form = document.getElementById('replyForm-' + commentId);
-            form.classList.toggle('d-none');
-            if (!form.classList.contains('d-none')) {
-                form.querySelector('input').focus();
-            }
+    const card = document.querySelector('.card.shadow-sm.mb-4');
+    card.style.opacity = '1';
+    card.style.pointerEvents = 'auto';
+    
+    // Notify server to cancel/clear the deleted_at flag
+    fetch('restore-snippet?id=' + snippetId, { method: 'POST' });
+}
+
+// ==========================================
+// 4. BOOKMARK TOGGLE (AJAX LOGIC)
+// ==========================================
+function toggleBookmark(snippetId) {
+    const icon = document.getElementById('bookmarkIcon');
+    
+    fetch('bookmark?id=' + snippetId, { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "added") {
+            icon.classList.replace('bi-heart', 'bi-heart-fill');
+        } else {
+            icon.classList.replace('bi-heart-fill', 'bi-heart');
         }
-    </script>
+    })
+    .catch(() => alert("Please login to bookmark items!"));
+}
+
+// ==========================================
+// 5. UTILITY: COPY TO CLIPBOARD
+// ==========================================
+function copyCode() {
+    const codeText = document.getElementById("snippetCode").innerText;
+    const btn = document.getElementById("copyBtn");
+    
+    navigator.clipboard.writeText(codeText).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+        btn.classList.replace('btn-outline-light', 'btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.replace('btn-success', 'btn-outline-light');
+        }, 2000);
+    }).catch(err => console.error("Clipboard copy failed", err));
+}
+</script>
 </body>
 </html>

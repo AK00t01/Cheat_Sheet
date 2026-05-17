@@ -43,8 +43,7 @@ public class DetailCheatSheetRepository {
 		     + "JOIN categories c ON s.categories_id=c.id\r\n"
 		     + "LEFT JOIN categories tn ON c.parent_id=tn.id\r\n"
 		     + "JOIN users u ON s.created_by=u.id\r\n"
-		     + "WHERE s.id=?";
-//	List<DetailCheatSheetBean> list = new ArrayList<>();
+		     + "WHERE s.id=? AND s.deleted_at IS NULL";
 
 	DetailCheatSheetBean obj = null;
 	Connection con = DBConnection.getConnection();

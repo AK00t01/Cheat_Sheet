@@ -16,9 +16,10 @@ public class CheatSheetRepository {
     public List<SnippetsBean> getSixSheets() {
 	Connection con = DBConnection.getConnection();
 	String query = "SELECT s.id,mc.name as name,c.name as topic,s.title,s.bg_color,s.font_family,s.contents,s.view_count,u.username,date(s.created_at)as created_at FROM snippets s\r\n"
-		+ "		Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
-		+ "        LEFT JOIN categories mc ON c.parent_id=mc.id\r\n"
-		+ "		ORDER BY view_count DESC LIMIT 6";
+		       + "		Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
+		       + "        LEFT JOIN categories mc ON c.parent_id=mc.id\r\n"
+		       + "WHERE s.deleted_at IS NULL"
+		       + "		ORDER BY view_count DESC LIMIT 6";
 	List<SnippetsBean> list = new ArrayList<SnippetsBean>();
 	try {
 	    PreparedStatement ps = con.prepareStatement(query);
@@ -86,9 +87,11 @@ public class CheatSheetRepository {
 
     public List<SnippetsBean> getSheetByCategoryId(String id) {
 	String sql = "SELECT s.id as sheetid,c.name as category,t.name as topic,s.title,s.contents,s.bg_color,s.font_family,s.view_count,u.username,date(s.created_at)as date\r\n"
-		+ "		FROM snippets s \r\n" + "        JOIN categories t ON t.id=s.categories_id\r\n"
-		+ "        JOIN categories c ON c.id=t.parent_id\r\n"
-		+ "		JOIN users u ON u.id=s.created_by \r\n" + "        WHERE t.parent_id=?";
+		     + "		FROM snippets s \r\n"
+		     + "        JOIN categories t ON t.id=s.categories_id\r\n"
+		     + "        JOIN categories c ON c.id=t.parent_id\r\n"
+		     + "		JOIN users u ON u.id=s.created_by \r\n"
+		     + "        WHERE t.parent_id=? AND deleted_at IS NULL;";
 	List<SnippetsBean> list = new ArrayList<SnippetsBean>();
 	Connection con = DBConnection.getConnection();
 	try {

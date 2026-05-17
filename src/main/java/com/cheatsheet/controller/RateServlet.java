@@ -8,20 +8,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.cheatsheet.repository.CommentsRepository;
-
 /**
- * Servlet implementation class ReplyCommentsServlet
+ * Servlet implementation class RateServlet
  */
-@WebServlet("/delete-comment")
-public class DeleteCommentsServlet extends HttpServlet {
+@WebServlet("/rate")
+public class RateServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    CommentsRepository cRepo = new CommentsRepository();
 
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public DeleteCommentsServlet() {
+    public RateServlet() {
 	super();
 	// TODO Auto-generated constructor stub
     }
@@ -32,10 +29,8 @@ public class DeleteCommentsServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
-	String parentId = request.getParameter("parentId");
-	String snippetId = request.getParameter("snippetId");
-//	cRepo.replyComments();
-
+	// TODO Auto-generated method stub
+	response.getWriter().append("Served at: ").append(request.getContextPath());
     }
 
     /**
@@ -44,8 +39,9 @@ public class DeleteCommentsServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
-	// TODO Auto-generated method stub
-	doGet(request, response);
+	String snippetsId = request.getParameter("snippetId");
+	int rating = Integer.parseInt(request.getParameter("rating"));
+
     }
 
 }

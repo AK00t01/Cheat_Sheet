@@ -55,7 +55,7 @@ public class AppFilter implements Filter {
 	String path = req.getServletPath();
 
 	// Allow access to home, CSS, JS, and Login/Register without being logged in
-	boolean isPublicPage = path.equals("/home") || path.endsWith(".css") || path.endsWith(".js")
+	boolean isPublicPage = path.equals("/") || path.equals("/home") || path.endsWith(".css") || path.endsWith(".js")
 		|| path.equals("/register") || path.equals("/login");
 
 	if (isPublicPage || user != null) {

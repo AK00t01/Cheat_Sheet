@@ -27,7 +27,7 @@ public class MyCheatSheetRepository {
 		     + "GROUP BY snippets_id\r\n"
 		     + " ) as stats ON s.id=stats.snippets_id\r\n"
 		     + " \r\n"
-		     + "WHERE s.created_by=?";
+		     + "WHERE s.created_by=? AND s.deleted_at IS NULL";
 	List<DetailCheatSheetBean> list = new ArrayList<>();
 
 	Connection con = DBConnection.getConnection();
