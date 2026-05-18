@@ -6,7 +6,13 @@
     <%@ include file="Header.jsp" %>
     <title>Edit Snippet: ${detail.title}</title>
     <style>
-        /* Custom styles for the color swatches */
+        .page-shell {
+            max-width: 1240px;
+        }
+        .editor-hero {
+            background: linear-gradient(135deg, rgba(15,111,255,0.10), rgba(18,185,129,0.10));
+            border: 1px solid rgba(15, 111, 255, 0.12);
+        }
         .color-swatch {
             width: 38px;
             height: 38px;
@@ -31,11 +37,26 @@
 <body class="bg-light">
     <%@ include file="Topbar.jsp" %>
 
-    <div class="container my-5">
+    <div class="container my-5 page-shell">
+        <div class="editor-hero rounded-4 p-4 p-lg-5 mb-4 shadow-sm">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <div class="small text-uppercase fw-bold text-primary mb-2">Edit Workspace</div>
+                    <h1 class="h2 fw-bold mb-2">Refine the snippet without losing the original intent</h1>
+                    <p class="text-muted mb-0">Update the wording, adjust the visual treatment, and keep the final result easy to scan for the next reader.</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="bg-white rounded-4 p-3 shadow-sm border">
+                        <div class="small text-muted mb-1">Current snippet</div>
+                        <div class="fw-semibold text-truncate">${detail.title}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-lg-7">
                 <div class="card shadow-sm border-0">
-                    <div class="card-header bg-primary text-white p-3">
+                    <div class="card-header text-white p-3" style="background: linear-gradient(135deg, #0f6fff 0%, #0948b3 100%);">
                         <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Snippet</h4>
                     </div>
                     <div class="card-body p-4">
@@ -76,10 +97,10 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Font Style</label>
                                     <select name="fontFamily" id="inputFont" class="form-select">
-                                        <option value="Courier New" ${detail.fontFamily == 'Courier New' ? 'selected' : ''}>Courier New (Mono)</option>
-                                        <option value="Arial" ${detail.fontFamily == 'Arial' ? 'selected' : ''}>Arial (Sans)</option>
+                                        <option value="'JetBrains Mono', monospace" ${detail.fontFamily == "'JetBrains Mono', monospace" ? 'selected' : ''}>JetBrains Mono</option>
+                                        <option value="'Manrope', sans-serif" ${detail.fontFamily == "'Manrope', sans-serif" ? 'selected' : ''}>Manrope</option>
                                         <option value="Georgia" ${detail.fontFamily == 'Georgia' ? 'selected' : ''}>Georgia (Serif)</option>
-                                        <option value="'Fira Code', monospace" ${detail.fontFamily == "'Fira Code', monospace" ? 'selected' : ''}>Fira Code</option>
+                                        <option value="'Trebuchet MS', sans-serif" ${detail.fontFamily == "'Trebuchet MS', sans-serif" ? 'selected' : ''}>Trebuchet MS</option>
                                     </select>
                                 </div>
                                 
@@ -154,6 +175,7 @@
 
             // 3. Font Sync
             inputFont.addEventListener('change', () => {
+
                 previewTitle.style.fontFamily = inputFont.value;
                 previewContent.style.fontFamily = inputFont.value;
 

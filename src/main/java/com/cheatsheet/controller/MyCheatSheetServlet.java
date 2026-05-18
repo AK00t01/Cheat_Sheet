@@ -16,7 +16,7 @@ import com.cheatsheet.repository.MyCheatSheetRepository;
 /**
  * Servlet implementation class MyCheatSheetServlet
  */
-@WebServlet("/my-cheatsheets")
+@WebServlet("/profile")
 public class MyCheatSheetServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     MyCheatSheetRepository myCSRepo = new MyCheatSheetRepository();
@@ -36,12 +36,24 @@ public class MyCheatSheetServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
 
-	UserBean user = (UserBean) request.getSession().getAttribute("user");
-	String userId = user.getId();
-	List<DetailCheatSheetBean> list = myCSRepo.getCheatSheetsByUserId(userId);
-	request.setAttribute("myList", list);
-	request.getRequestDispatcher("my-cheatsheet.jsp").forward(request, response);
+	String targetUserId = request.getParameter("userId");
+	UserBean sessionUser = (UserBean) request.getSession().getAttribute("user");
 
+	// Fallback default: if no user param is present in URL, view the logged-in
+	// user's own profile dashboard
+	if (targetUserId == null || targetUserId.trim().isEmpty()) {
+	    if (sessionUser == null) {
+		response.sendRedirect("login.jsp");
+		return;
+	    }
+	    targetUserId = sessionUser.getId();
+	}
+
+	// 2. Fetch the corresponding sheets for whoever the target user is
+	List<DetailCheatSheetBean> list = myCSRepo.getCheatSheetsByUserId(targetUserId);
+	request.setAttribute("myList", list);
+
+	request.getRequestDispatcher("my-cheatsheet.jsp").forward(request, response);
     }
 
     /**

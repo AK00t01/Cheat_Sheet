@@ -48,9 +48,6 @@ public class ViewDetailServlet extends HttpServlet {
 
 	String id = request.getParameter("id");
 
-	UserBean user = (UserBean) request.getSession().getAttribute("user");
-	String userId = user.getId();
-
 	HttpSession session = request.getSession();
 
 	if (id != null && !id.isBlank()) {
@@ -70,14 +67,20 @@ public class ViewDetailServlet extends HttpServlet {
 		    viewedSnippets.add(id); // Mark as viewed
 		}
 	    }
+	    UserBean user = (UserBean) request.getSession().getAttribute("user");
+	    String userId = user != null ? user.getId() : null;
 
 	    DetailCheatSheetBean dObj = detailRepo.getCheatSheetById(id);
 	    List<CommentsBean> cObj = commentRepo.getCommentsForSnippetById(id);
 	    DetailCheatSheetBean rate = detailRepo.getRatings(id);
-	    int userSelectedRating = cRepo.getRatingByUserIdAndSheetId(userId, id);
-	    boolean bookmark = bRepo.isBookmarked(id, userId);
-	    System.out.println("bookmark"
-			       + bookmark);
+	    int userSelectedRating = 0;
+	    boolean bookmark = false;
+
+	    if (userId != null) {
+		userSelectedRating = cRepo.getRatingByUserIdAndSheetId(userId, id);
+		bookmark = bRepo.isBookmarked(id, userId);
+	    }
+	    System.out.println("bookmark" + bookmark);
 
 	    if (dObj != null) {
 		request.setAttribute("detail", dObj);
@@ -102,8 +105,7 @@ public class ViewDetailServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
-	// TODO Auto-generated method stub
-	doGet(request, response);
+
     }
 
 }

@@ -1,72 +1,83 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+<nav class="navbar navbar-expand-lg sticky-top py-3" style="backdrop-filter: blur(14px); background: rgba(11, 18, 32, 0.88);">
     <div class="container">
-        <!-- Logo -->
-        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/home">
-            <i class="bi bi-code-slash text-primary"></i> CheatSheet
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="${pageContext.request.contextPath}/home">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 2.25rem; height: 2.25rem; background: linear-gradient(135deg, #0f6fff 0%, #12b981 100%);">
+                <i class="bi bi-code-slash text-white"></i>
+            </span>
+            <span class="text-white">CheatSheet</span>
         </a>
 
-        <!-- Mobile Toggle -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>      
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- Left Side: Topics -->
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav me-auto align-items-lg-center gap-lg-2">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Categories</a>
-                    <ul class="dropdown-menu shadow">
+                    <a class="nav-link dropdown-toggle text-white-50 fw-semibold" href="#" data-bs-toggle="dropdown">Categories</a>
+                    <ul class="dropdown-menu shadow border-0 p-2">
                         <c:forEach var="t" items="${sessionScope.categories}">
-                            <li><a class="dropdown-item" href="categories?id=${t.categoryId}">${t.categoryName}</a></li>
+                            <li><a class="dropdown-item rounded-3 py-2" href="categories?id=${t.categoryId}">${t.categoryName}</a></li>
                         </c:forEach>
                     </ul>
                 </li>
+                <c:if test="${not empty sessionScope.user && 'ADMIN'.equalsIgnoreCase(sessionScope.user.role)}">
+                    <li class="nav-item">
+                        <a class="nav-link text-warning fw-bold d-flex align-items-center" href="admin-dashboard">
+                            <i class="bi bi-shield-fill-check me-1"></i> Admin Dashboard
+                            <c:if test="${not empty pendingReportsCount && pendingReportsCount > 0}">
+                                <span class="badge rounded-pill bg-danger ms-2 small font-monospace">${pendingReportsCount}</span>
+                            </c:if>
+                        </a>
+                    </li>
+                </c:if>
             </ul>
             
-                        <div class="position-relative">
-    <form class="d-flex ms-3" action="home" method="get" autocomplete="off">
-        <div class="input-group">
-            <input type="text" id="liveSearch" name="query" 
-                   class="form-control form-control-sm" 
-                   placeholder="Type to search..." 
-                   oninput="performSearch(this.value)">
-            <button class="btn btn-primary btn-sm" type="submit">
-                <i class="bi bi-search"></i>
-            </button>
-        </div>
-    </form>
-    <!-- Suggestions box -->
+            <div class="position-relative mx-lg-4 my-3 my-lg-0 flex-grow-1" style="max-width: 420px;">
+            
+<form class="d-flex" action="search" method="GET" autocomplete="off">
+    <div class="input-group">
+        <input type="text" id="liveSearch" name="query" 
+               class="form-control form-control-sm" 
+               placeholder="Search snippets..." 
+               oninput="performSearch(this.value)">
+        <button class="btn btn-primary btn-sm px-3" type="submit">Go</button>
+    </div>
+</form>
     <div id="searchSuggestions" class="list-group position-absolute w-100 shadow-lg d-none" 
-         style="z-index: 1050; top: 35px;">
+         style="z-index: 1050; top: calc(100% + 0.5rem);">
     </div>
 </div>
            
-            <!-- Right Side: Auth/User Menu -->
-            <div class="d-flex align-items-center ms-auto">
+            <div class="d-flex align-items-center ms-lg-auto gap-2 flex-wrap">
+                <a href="random-snippet" class="btn btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-shuffle me-2"></i>Surprise Me
+                </a>
                 <c:choose>
                     <c:when test="${empty sessionScope.user}">
-                        <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <button type="button" class="btn btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#loginModal">
                             Login
                         </button>
-                        <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#registerModal">
+                        <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#registerModal">
                             Register
                         </button>
                     </c:when>
                     <c:otherwise>
                         <div class="dropdown">
-                            <button class="btn btn-dark dropdown-toggle d-flex align-items-center" type="button" id="userMenu" data-bs-toggle="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center rounded-pill px-3" type="button" id="userMenu" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle fs-5 me-2"></i>
                                 <span>${sessionScope.user.name}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><a class="dropdown-item" href="profile">Profile</a></li>
-                                <li><a class="dropdown-item" href="my-cheatsheets">My Snippets</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2">
+                                <li><a class="dropdown-item rounded-3 py-2" href="profile">Profile</a></li>
+                                <li><a class="dropdown-item rounded-3 py-2" href="bookmark">My Bookmarks</a></li>
+                                
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
+                                    <a class="dropdown-item rounded-3 py-2 text-danger" href="${pageContext.request.contextPath}/logout">
                                         <i class="bi bi-box-arrow-right me-2"></i> Logout
                                     </a>
                                 </li>
@@ -92,11 +103,66 @@
     </div>
 </div>
 
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f6fff 0%, #12b981 100%);">
+                <h5 class="modal-title fw-bold" id="registerModalLabel">Join CheatSheet Pro</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="register" method="POST" id="registrationForm">
+                    <div class="mb-3">
+                        <label for="reg-username" class="form-label fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="reg-username" name="username" placeholder="Enter username" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg-email" class="form-label fw-semibold">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="reg-email" name="email" placeholder="name@example.com" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg-password" class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="reg-password" name="password" 
+                                   required minlength="6" pattern="(?=.*[a-zA-Z]).{6,}" placeholder="At least 6 characters and contain one letter.">
+                        </div>
+                    </div>
+               
+                    <div class="mb-3">
+                        <label for="confirm-password" class="form-label fw-semibold">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-check-all"></i></span>
+                            <input type="password" class="form-control" id="confirm-password" name="confirmPassword" required placeholder="Repeat password">
+                        </div>
+                        <div id="passwordError" class="text-danger small mt-1 d-none">
+                            Passwords do not match!
+                        </div>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill">Create Account</button>
+                    </div>
+                </form>
+                  
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <span class="text-muted small">Already a member? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-primary text-decoration-none fw-bold">Login</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Login Modal -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-dark text-white">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #111827 0%, #0f6fff 100%);">
                 <h5 class="modal-title fw-bold">Account Login</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -118,7 +184,9 @@
                         <label class="form-label small fw-bold">Password</label>
                         <input type="password" name="password" class="form-control" placeholder="Enter password" required>
                     </div>
-                    
+                    <div class="text-end mt-1">
+			        <a href="forgot-password" class="text-muted small text-decoration-none">Forgot password?</a>
+			    </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" name="rememberMe" value="true" class="form-check-input" id="rememberMe">
                         <label class="form-check-label small fw-bold" for="rememberMe">Remember Me</label>
@@ -127,6 +195,7 @@
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">Sign In</button>
                 </form>
             </div>
+
             <div class="modal-footer justify-content-center border-0">
                 <p class="small text-muted">Don't have an account? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">Register here</a></p>
             </div>
@@ -137,6 +206,24 @@
 <!-- Script to handle automatic modal reopening on error -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        const registrationForm = document.getElementById('registrationForm');
+        if (registrationForm) {
+            registrationForm.onsubmit = function(e) {
+                const password = document.getElementById('reg-password').value;
+                const confirm = document.getElementById('confirm-password').value;
+                const errorDiv = document.getElementById('passwordError');
+
+                if (password !== confirm) {
+                    e.preventDefault();
+                    errorDiv.classList.remove('d-none');
+                    return false;
+                }
+
+                errorDiv.classList.add('d-none');
+                return true;
+            };
+        }
+
         // Check if an error exists in the JSTL sessionScope
         const hasError = "<c:out value='${sessionScope.error}'/>";
         
@@ -187,4 +274,17 @@
                 });
         }, 300); // 300ms is the standard "pause" threshold
     }
+
+    document.addEventListener("click", function(event) {
+        const suggestionBox = document.getElementById("searchSuggestions");
+        const searchInput = document.getElementById("liveSearch");
+
+        if (!suggestionBox || !searchInput) {
+            return;
+        }
+
+        if (!suggestionBox.contains(event.target) && event.target !== searchInput) {
+            suggestionBox.classList.add("d-none");
+        }
+    });
 </script>

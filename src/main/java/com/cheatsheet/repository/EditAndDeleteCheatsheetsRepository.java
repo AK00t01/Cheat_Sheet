@@ -10,6 +10,7 @@ import com.cheatsheet.model.DetailCheatSheetBean;
 import com.cheatsheet.utils.DBConnection;
 
 public class EditAndDeleteCheatsheetsRepository {
+
     public String getOrCreateCategoryId(String topicName, String parentId) {
 	// 1. Try to find existing topic (Case-Insensitive)
 	String findSql = "SELECT id FROM categories WHERE LOWER(name) = LOWER(?)";
@@ -55,5 +56,35 @@ public class EditAndDeleteCheatsheetsRepository {
 	    e.printStackTrace();
 	    return false;
 	}
+    }
+
+    public boolean softDeleteCheatSheet(DetailCheatSheetBean obj) {
+	String sql = "UPDATE snippets SET deleted_at=NOW() WHERE id=? AND created_by=?";
+	Connection con = DBConnection.getConnection();
+
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, obj.getSheetId());
+	    ps.setString(2, obj.getCreatedBy());
+	    return ps.executeUpdate() > 0;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return false;
+    }
+
+    public boolean restoreCheatSheet(DetailCheatSheetBean obj) {
+	String sql = "UPDATE snippets SET deleted_at=NULL WHERE id=? AND created_by=?";
+	Connection con = DBConnection.getConnection();
+
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, obj.getSheetId());
+	    ps.setString(2, obj.getCreatedBy());
+	    return ps.executeUpdate() > 0;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return false;
     }
 }

@@ -2,7 +2,6 @@ package com.cheatsheet.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,25 +9,24 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.cheatsheet.model.SnippetsBean;
+import com.cheatsheet.model.DetailCheatSheetBean;
 import com.cheatsheet.model.UserBean;
-import com.cheatsheet.repository.BookmarksRepository;
-import com.cheatsheet.repository.CheatSheetRepository;
+import com.cheatsheet.repository.EditAndDeleteCheatsheetsRepository;
 
 /**
- * Servlet implementation class BookmarkServlet
+ * Servlet implementation class ModifyCheatsheetServlet
  */
-@WebServlet("/bookmark")
-public class BookmarkServlet extends HttpServlet {
+@WebServlet("/modify-cheatsheet")
+public class ModifyCheatsheetServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    BookmarksRepository bRepo = new BookmarksRepository();
-    CheatSheetRepository cRepo = new CheatSheetRepository();
+    EditAndDeleteCheatsheetsRepository repo = new EditAndDeleteCheatsheetsRepository();
 
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public BookmarkServlet() {
+    public ModifyCheatsheetServlet() {
 	super();
+	// TODO Auto-generated constructor stub
     }
 
     /**
@@ -37,11 +35,7 @@ public class BookmarkServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
-	UserBean user = (UserBean) request.getSession().getAttribute("user");
-	String userId = user.getId();
-	List<SnippetsBean> sObj = cRepo.getSheetsByBookmark(userId);
-	request.setAttribute("sheets", sObj);
-	request.getRequestDispatcher("my-bookmark-list.jsp").forward(request, response);
+
     }
 
     /**
@@ -51,21 +45,32 @@ public class BookmarkServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
 
-	String id = request.getParameter("id");
+	String sheetId = request.getParameter("id");
+	String action = request.getParameter("action");
 	UserBean user = (UserBean) request.getSession().getAttribute("user");
-	System.err.println(id);
+	String userId = user.getId();
+
 	response.setContentType("application/json");
 	PrintWriter out = response.getWriter();
 
-	String userId = user.getId();
-	boolean isNowBookmarked = bRepo.toggleBookmark(id, userId);
-
-	// Return JSON so AJAX can update the heart icon
-	if (isNowBookmarked) {
-	    out.print("{\"status\": \"added\"}");
-	} else {
-	    out.print("{\"status\": \"removed\"}");
+	if (user == null || sheetId == null || action == null) {
+	    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+	    out.print("{\"success\": false, \"error\": \"Invalid Session or Parameters\"}");
+	    return;
 	}
+
+	DetailCheatSheetBean obj = new DetailCheatSheetBean();
+	obj.setSheetId(sheetId);
+	obj.setCreatedBy(userId);
+
+	boolean result;
+	if ("delete".equalsIgnoreCase(action)) {
+	    result = repo.softDeleteCheatSheet(obj);
+
+	} else {
+	    result = repo.restoreCheatSheet(obj);
+	}
+	out.print("{\"success\":" + result + "}");
 	out.flush();
 
     }

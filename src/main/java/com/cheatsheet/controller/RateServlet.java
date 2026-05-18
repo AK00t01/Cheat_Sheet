@@ -8,12 +8,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.cheatsheet.model.UserBean;
+import com.cheatsheet.repository.CheatSheetRepository;
+
 /**
  * Servlet implementation class RateServlet
  */
 @WebServlet("/rate")
 public class RateServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    CheatSheetRepository cRepo = new CheatSheetRepository();
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -41,6 +45,11 @@ public class RateServlet extends HttpServlet {
 	    throws ServletException, IOException {
 	String snippetsId = request.getParameter("snippetId");
 	int rating = Integer.parseInt(request.getParameter("rating"));
+	UserBean user = (UserBean) request.getSession().getAttribute("user");
+	String userId = user.getId();
+
+	cRepo.saveOrUpdateRating(userId, snippetsId, rating);
+	response.sendRedirect("view?id=" + snippetsId);
 
     }
 

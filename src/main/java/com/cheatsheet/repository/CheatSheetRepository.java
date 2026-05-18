@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.cheatsheet.model.CategoriesBean;
 import com.cheatsheet.model.SnippetsBean;
@@ -16,7 +17,7 @@ public class CheatSheetRepository {
     public List<SnippetsBean> getSixSheets() {
 	Connection con = DBConnection.getConnection();
 	String query = "SELECT s.id,mc.name as name,c.name as topic,s.title,s.bg_color,s.font_family,s.contents,s.view_count,u.username,date(s.created_at)as created_at FROM snippets s\r\n"
-		       + "		Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
+		       + "	Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
 		       + "        LEFT JOIN categories mc ON c.parent_id=mc.id\r\n"
 		       + "WHERE s.deleted_at IS NULL"
 		       + "		ORDER BY view_count DESC LIMIT 6";
@@ -158,17 +159,109 @@ public class CheatSheetRepository {
 	    }
 	} else {
 	    // Insert new with a UUID
-	    String insertSql = "INSERT INTO ratings (id, user_id, snippets_id, stars) VALUES (?, ?, ?, ?)";
+	    String insertSql = "INSERT INTO ratings (user_id, snippets_id, stars) VALUES ( ?, ?, ?)";
 	    try (Connection con = DBConnection.getConnection();
 		    PreparedStatement ps = con.prepareStatement(insertSql)) {
-		ps.setString(1, java.util.UUID.randomUUID().toString());
-		ps.setString(2, userId);
-		ps.setString(3, sheetId);
-		ps.setInt(4, stars);
+
+		ps.setString(1, userId);
+		ps.setString(2, sheetId);
+		ps.setInt(3, stars);
 		ps.executeUpdate();
 	    } catch (SQLException e) {
 		e.printStackTrace();
 	    }
 	}
+    }
+
+    public boolean adminSoftDeleteSnippet(String targetId) {
+
+	String sql = "UPDATE snippets SET deleted_at=NOW() WHERE id=? ";
+	Connection con = DBConnection.getConnection();
+
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, targetId);
+	    return ps.executeUpdate() > 0;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return false;
+
+    }
+
+    public String getRandomSnippetId() {
+	String countSql = "SELECT COUNT(*) FROM snippets WHERE deleted_at IS NULL";
+	// Using LIMIT 1 OFFSET ? lets us skip right to our random row index
+	String randomSql = "SELECT id FROM snippets WHERE deleted_at IS NULL LIMIT 1 OFFSET ?";
+
+	try (Connection con = DBConnection.getConnection()) {
+
+	    // Step 1: Get total count of non-deleted snippets
+	    int totalCount = 0;
+	    try (PreparedStatement psCount = con.prepareStatement(countSql);
+		    ResultSet rsCount = psCount.executeQuery()) {
+		if (rsCount.next()) {
+		    totalCount = rsCount.getInt(1);
+		}
+	    }
+
+	    // Guard Clause: If there are zero snippets in the DB, exit safely
+	    if (totalCount == 0) {
+		return null;
+	    }
+
+	    // Step 2: Generate a random index using Java logic
+	    Random random = new Random();
+	    int randomIndex = random.nextInt(totalCount); // Generates a number from 0 to (totalCount - 1)
+
+	    // Step 3: Fetch the ID at that random offset
+	    try (PreparedStatement psRandom = con.prepareStatement(randomSql)) {
+		psRandom.setInt(1, randomIndex); // This replaces the OFFSET ?
+		try (ResultSet rsRandom = psRandom.executeQuery()) {
+		    if (rsRandom.next()) {
+			return rsRandom.getString("id");
+		    }
+		}
+	    }
+
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return null;
+    }
+
+    public List<SnippetsBean> getSheetsByBookmark(String userId) {
+	String sql = "SELECT s.id,mc.name as name,c.name as topic,s.title,s.bg_color,s.font_family,s.contents,s.view_count,u.username,date(s.created_at)as created_at FROM\r\n"
+		     + "bookmarks b\r\n"
+		     + "LEFT JOIN snippets s ON s.id=b.snippets_id\r\n"
+		     + "Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
+		     + "LEFT JOIN categories mc ON c.parent_id=mc.id\r\n"
+		     + "WHERE s.deleted_at IS NULL AND b.user_id=?";
+	Connection con = DBConnection.getConnection();
+	List<SnippetsBean> list = new ArrayList<>();
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, userId);
+	    ResultSet rs = ps.executeQuery();
+
+	    while (rs.next()) {
+		SnippetsBean sb = new SnippetsBean();
+		sb.setId(rs.getString("id"));
+		sb.setTopicName(rs.getString("topic"));
+		sb.setCategoryName(rs.getString("name"));
+		sb.setTitle(rs.getString("title"));
+		sb.setBgColor(rs.getString("bg_color"));
+		sb.setFontFamily(rs.getString("font_family"));
+		sb.setContent(rs.getString("contents"));
+		sb.setViewCount(rs.getInt("view_count"));
+		sb.setCreatedAt(rs.getString("created_at"));
+		sb.setCreatedBy(rs.getString("username"));
+		list.add(sb);
+	    }
+	} catch (SQLException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
+	return list;
     }
 }

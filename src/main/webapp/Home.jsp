@@ -7,19 +7,22 @@
     <title>Home - CheatSheet Pro</title>
     <style>
         .hero-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #003d99 100%);
+            background:
+                radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 28%),
+                linear-gradient(135deg, #0f172a 0%, #0f6fff 52%, #12b981 100%);
             color: white;
-            padding: 60px 0;
+            padding: 88px 0 76px;
             margin-bottom: 40px;
+            border-radius: 0 0 32px 32px;
         }
         .snippet-card {
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
             border: none;
-            border-radius: 12px;
+            overflow: hidden;
         }
         .snippet-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            box-shadow: 0 20px 40px rgba(15,23,42,0.14) !important;
         }
         .topic-badge {
             background-color: #f8f9fa;
@@ -46,6 +49,16 @@
         .alert-container {
             min-height: 50px;
         }
+        .hero-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
@@ -61,7 +74,15 @@
             </div>
             <c:remove var="successMsg" scope="session" />
         </c:if>
-
+      
+        <c:if test="${not empty sessionScope.authError}">
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> ${sessionScope.authError}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <c:remove var="authError" scope="session" />
+        </c:if>
+        
         <%-- Error Message for Login/General Failures --%>
         <c:if test="${not empty sessionScope.error}">
             <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0" role="alert">
@@ -75,11 +96,22 @@
 
     <header class="hero-section text-center">
         <div class="container">
-            <h1 class="display-4 fw-bold">Master Coding Shortcuts</h1>
-            <p class="lead text-white-50">Browse, share, and manage your favorite code snippets in one place.</p>
+            <div class="hero-chip mb-3">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>Browse freely. Contribute when signed in.</span>
+            </div>
+            <h1 class="display-4 fw-bold">Learning shortcuts that are actually easy to revisit</h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 760px;">Explore code snippets, compare patterns, and open any detail page without logging in. Sign in only when you want to rate, bookmark, comment, or publish your own cheatsheets.</p>
             <div class="mt-4">
                 <a href="#explore" class="btn btn-light btn-lg px-4 me-2 shadow-sm">Explore Now</a>
-                <a href="creat-sheet" class="btn btn-outline-light btn-lg px-4">Add New Snippet</a>
+                <c:choose>
+                    <c:when test="${empty sessionScope.user}">
+                        <button type="button" class="btn btn-outline-light btn-lg px-4" data-bs-toggle="modal" data-bs-target="#loginModal">Sign In to Create</button>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="creat-sheet" class="btn btn-outline-light btn-lg px-4">Add New Cheatsheet</a>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </header>
@@ -105,8 +137,9 @@
                         </c:if>
                     </div>
                 </div>
+                
             </aside>
-
+      
             <div class="col-lg-9">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold mb-0">Latest Cheat Sheets</h4>
@@ -151,7 +184,7 @@
                                  
                                 <div class="card-footer bg-white border-0 pb-3 pt-0" style="background: transparent !important;">
                                     <a href="view?id=${sheet.id}" class="btn btn-primary btn-sm w-100 rounded-pill">
-                                        View Code Details
+                                        View Cheatsheet Details
                                     </a>
                                 </div>
                             </div>
@@ -171,59 +204,6 @@
         </div>
     </main>
 
-    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="registerModalLabel">Join CheatSheet Pro</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form action="register" method="POST" id="registrationForm">
-                        <div class="mb-3">
-                            <label for="reg-username" class="form-label fw-semibold">Username</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                <input type="text" class="form-control" id="reg-username" name="username" placeholder="Enter username" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="reg-email" class="form-label fw-semibold">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                <input type="email" class="form-control" id="reg-email" name="email" placeholder="name@example.com" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="reg-password" class="form-label fw-semibold">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                <input type="password" class="form-control" id="reg-password" name="password" 
-                                       required minlength="6" placeholder="At least 6 characters">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirm-password" class="form-label fw-semibold">Confirm Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-check-all"></i></span>
-                                <input type="password" class="form-control" id="confirm-password" required placeholder="Repeat password">
-                            </div>
-                            <div id="passwordError" class="text-danger small mt-1" style="display:none;">
-                                Passwords do not match!
-                            </div>
-                        </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill">Create Account</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0 justify-content-center pb-4">
-                    <span class="text-muted small">Already a member? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-primary text-decoration-none fw-bold">Login</a></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
             <p class="mb-0 opacity-50">&copy; 2026 CheatSheet Pro - Coding made easier.</p>
@@ -232,25 +212,7 @@
 
 
     <script>
-        // Registration Password Validation
-        document.getElementById('registrationForm').onsubmit = function(e) {
-            const password = document.getElementById('reg-password').value;
-            const confirm = document.getElementById('confirm-password').value;
-            const errorDiv = document.getElementById('passwordError');
-
-            if (password !== confirm) {
-                e.preventDefault();
-                errorDiv.style.display = 'block';
-                return false;
-            } else {
-                errorDiv.style.display = 'none';
-            }
-        };
-
-        // Automatic Modal Trigger for Errors
         document.addEventListener("DOMContentLoaded", function() {
-            // If the URL has 'error' parameter or session 'error' is set, show login modal
-            // (Note: This assumes your Topbar or Servlet handles the trigger logic)
             const hasError = "${sessionScope.error}";
             if (hasError && hasError.trim().length > 0) {
                 var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));

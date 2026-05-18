@@ -1,86 +1,104 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html>
 <head>
-
-    <meta charset="UTF-8">
-    <title>My Cheat Sheets</title>
-        <%@ include file="Header.jsp" %>
-<style type="text/css">
-              .snippet-card {
-            transition: transform 0.2s;
-            border: none;
-            border-radius: 12px;
+    <%@ include file="Header.jsp" %>
+    <title>User Profile | CheatSheet Pro</title>
+    <style>
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #0f6fff 0%, #12b981 100%);
+            color: white;
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(15, 111, 255, 0.2);
         }
-        .snippet-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
- </style>       
-</head>        
-    
-
+        .sheet-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .sheet-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
+        }
+    </style>
+</head>
 <body class="bg-light">
+    <%@ include file="Topbar.jsp" %>
 
-    <!-- Assuming you have a standard topbar -->
-    <%@ include file="Topbar.jsp"%>]
-
-    <div class="container mt-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold">My Snippets</h2>
-            <a href="creat-sheet" class="btn btn-success">
-                <i class="bi bi-plus-lg"></i> Create New
-            </a>
+    <div class="container py-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white">
+            <div class="d-flex align-items-center flex-wrap gap-4">
+                <div class="profile-avatar fw-bold">
+                    ${fn:substring(user.name, 0, 1).toUpperCase()}
+                </div>
+                <div>
+                    <h2 class="fw-bold text-dark mb-1"><c:out value="${user.name}" /></h2>
+                    <p class="text-muted mb-2"><i class="bi bi-envelope me-1"></i> <c:out value="${user.email}" /></p>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill small">
+                        <i class="bi bi-shield-check me-1"></i>User Account
+                    </span>
+                </div>
+            </div>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <c:forEach var="s" items="${myList}">
-                <div class="col">
-                    <!-- Dynamic Background and Font from your database -->
-                    <div class="card h-100 shadow-sm border-0 snippet-card" 
-                         style="background-color: ${s.bgColor}; font-family: ${s.fontFamily};">
-                        
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                               ${s.categoryName} <i class="bi bi-chevron-right mx-1" style="font-size: 0.7rem;">
-                                        </i> ${s.topic} 
-                                        <small class="text-muted">${s.createdAt}</small>
-                            </div>
-                            
-                            <h5 class="card-title fw-bold">${s.title}</h5>
-                            <p class="card-text text-truncate" style="max-height: 3.6em; overflow: hidden;">
-                                ${s.content}
-                            </p>
-                            
-                            <!-- Rating Section -->
-                            <div class="text-warning mb-2">
-                                <i class="bi bi-star-fill"></i> ${s.rating} 
-                                <span class="text-muted small">(${s.userCounts} reviews)</span>
-                            </div>
-                        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-dark m-0">
+                <i class="bi bi-grid-1x2-fill text-primary me-2"></i>My Created Contributions
+            </h4>
+            <span class="badge bg-dark rounded-pill px-3">${myList.size()} Sheets</span>
+        </div>
 
-                        <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center pb-3">
-                            <small class="text-muted">
-                                <i class="bi bi-eye"></i> ${s.viewCount} views
-                            </small>
-                            <div class="btn-group">
-                                <a href="view?id=${s.sheetId}" class="btn btn-sm btn-outline-dark">View</a>
-                                <a href="edit?id=${s.sheetId}" class="btn btn-sm btn-outline-primary">Edit</a>
-                            </div>
+        <div class="row g-4">
+            <c:choose>
+                <c:when test="${empty myList}">
+                    <div class="col-12 text-center py-5">
+                        <div class="p-5 bg-white rounded-4 border shadow-sm">
+                            <i class="bi bi-journal-plus text-muted fs-1 d-block mb-3"></i>
+                            <h5 class="fw-bold">No cheat sheets created yet</h5>
+                            <p class="text-muted mb-4">Share your development knowledge by creating your first reference card card block framework.</p>
+                            <a href="create-cheatsheet.jsp" class="btn btn-primary fw-bold px-4 rounded-pill">
+                                + Create New Sheet
+                            </a>
                         </div>
                     </div>
-                </div>
-            </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <c:forEach var="sheet" items="${myList}">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card sheet-card h-100 border-0 shadow-sm rounded-3">
+                                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-light text-success border px-2 py-1 small text-uppercase">
+                                                ${sheet.categoryName}
+                                            </span>
+                                            <small class="text-muted"><i class="bi bi-eye"></i> ${sheet.viewCount}</small>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-2">${sheet.title}</h5>
+                                        <p class="text-muted small text-truncate" style="max-width: 250px;">${sheet.topic}</p>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                                        <a href="view?id=${sheet.sheetId}" class="btn btn-sm btn-outline-primary w-100 fw-bold">
+                                            View Card
+                                        </a>
+                                        <a href="edit?id=${sheet.sheetId}" class="btn btn-sm btn-light border" title="Edit Content">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
         </div>
-
-        <!-- Empty State -->
-        <c:if test="${empty myList}">
-            <div class="text-center mt-5">
-                <i class="bi bi-file-earmark-plus fs-1 text-muted"></i>
-                <p class="text-muted mt-2">You haven't created any snippets yet.</p>
-            </div>
-        </c:if>
     </div>
-
 </body>
 </html>

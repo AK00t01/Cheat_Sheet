@@ -32,7 +32,7 @@ public class RegisterServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
 
-	response.sendRedirect("Register.jsp");
+	response.sendRedirect("home");
     }
 
     /**
@@ -47,57 +47,55 @@ public class RegisterServlet extends HttpServlet {
 	String password = request.getParameter("password");
 	String confirmPassword = request.getParameter("confirmPassword");
 
+	// Get the session up front so we can save attributes that survive a redirect
+	HttpSession session = request.getSession();
+	String contextPath = request.getContextPath();
+
 	if (userName == null || userName.isBlank()) {
-	    request.setAttribute("error", "Username is required.");
-	    request.getRequestDispatcher("Register.jsp").forward(request, response);
+	    session.setAttribute("error", "Username is required.");
+	    response.sendRedirect(contextPath + "/home");
 	    return;
 	}
 
 	if (email == null || email.isBlank()) {
-	    request.setAttribute("error", "Email is required.");
-	    request.getRequestDispatcher("Register.jsp").forward(request, response);
+	    session.setAttribute("error", "Email is required.");
+	    response.sendRedirect(contextPath + "/home");
 	    return;
 	}
 
-	if (password == null || password.length() < 8 || !password.matches(".*[a-zA-Z].*")) {
-	    request.setAttribute("error",
+	if (password == null || password.length() < 6 || !password.matches(".*[a-zA-Z].*")) {
+	    session.setAttribute("error",
 		    "Password must be at least 8 characters long and contain at least one letter.");
-	    request.getRequestDispatcher("Register.jsp").forward(request, response);
+	    response.sendRedirect(contextPath + "/home");
 	    return;
 	}
 
 	if (!password.equals(confirmPassword)) {
-	    request.setAttribute("error", "Passwords do not match.");
-	    request.getRequestDispatcher("Register.jsp").forward(request, response);
+	    session.setAttribute("error", "Passwords do not match.");
+	    response.sendRedirect(contextPath + "/home");
 	    return;
 	}
+
 	if (userRepo.isEmailRegistered(email)) {
-	    request.setAttribute("error", "Email is already registered.");
-	    request.getRequestDispatcher("Register.jsp").forward(request, response);
+	    session.setAttribute("error", "Email is already registered.");
+	    response.sendRedirect(contextPath + "/home");
 	    return;
 	}
 
 	try {
-
 	    String hashedPassword = PasswordConfig.hashPassword(password);
 
-	    System.out.println("reg pass" + password);
+	    System.out.println("Registering user: " + userName + " with hashed password.");
 	    userRepo.registerUser(userName, email, hashedPassword);
 
-	    // 3. Success Response
-	    // We use redirect here so if the user refreshes the page,
-	    // it doesn't submit the form again (Post/Redirect/Get pattern).
-	    HttpSession session = request.getSession();
+	    // Success Response - Lives in session, will survive the redirect perfectly!
 	    session.setAttribute("regSuccess", "Registration successful! You can now login.");
-
-	    // Redirect back to home
-	    response.sendRedirect("home");
-	    return;
+	    response.sendRedirect(contextPath + "/home");
 
 	} catch (Exception e) {
 	    e.printStackTrace();
-	    request.setAttribute("error", "Registration failed.");
-	    request.getRequestDispatcher("Register.jsp").forward(request, response);
+	    session.setAttribute("error", "Registration failed due to a system error.");
+	    response.sendRedirect(contextPath + "/home");
 	}
     }
 }

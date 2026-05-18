@@ -139,6 +139,22 @@ public class CommentsRepository {
 	}
 
 	return i;
+    }
+
+    public boolean adminSoftDeleteComment(String targetId) {
+	String sql = "UPDATE comments SET deleted_at = NOW() WHERE id = ? ";
+
+	Connection con = DBConnection.getConnection();
+	try {
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, targetId);
+
+	    return ps.executeUpdate() > 0;
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+	return false;
 
     }
+
 }

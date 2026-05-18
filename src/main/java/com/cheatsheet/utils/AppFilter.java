@@ -27,18 +27,14 @@ public class AppFilter implements Filter {
 	HttpSession session = req.getSession();
 
 	UserBean user = (UserBean) session.getAttribute("user");
-	// 1. If user is NOT in session, check Cookies for "Remember Me"
+
+	// 1. Check Cookies for "Remember Me"
 	if (user == null) {
 	    Cookie[] cookies = req.getCookies();
 	    if (cookies != null) {
-//		System.out.println("is cookies error");
 		for (Cookie c : cookies) {
-//		    System.out.println("cookie" + c.getName());
 		    if ("remember_user".equals(c.getName())) {
 			String userId = c.getValue();
-//			System.out.println("filter" + userId);
-
-			// Call your repository to get the user by ID
 			UserRepository repo = new UserRepository();
 			user = repo.getUserById(userId);
 
@@ -51,18 +47,39 @@ public class AppFilter implements Filter {
 	    }
 	}
 
-	// 2. Security Logic: Protect specific pages
+	// 2. Clear Path Extraction Logic
 	String path = req.getServletPath();
 
-	// Allow access to home, CSS, JS, and Login/Register without being logged in
-	boolean isPublicPage = path.equals("/") || path.equals("/home") || path.endsWith(".css") || path.endsWith(".js")
-		|| path.equals("/register") || path.equals("/login");
+	// Check if the file requested is a static asset (CSS, JS, Images)
+	boolean isStaticAsset = path.endsWith(".css") || path.endsWith(".js") || path.contains("/css/")
+		|| path.contains("/js/") || path.contains("/images/");
 
-	if (isPublicPage || user != null) {
-	    chain.doFilter(request, response); // Allow access
+	// Public pages that guests can access without authentication
+	boolean isPublicPage = path.equals("/") || path.equals("/home") || path.equals("/register")
+		|| path.equals("/login") || path.equals("/logout") || path.equals("/random-snippet")
+		|| path.equals("/view") || path.equals("/live-search") || path.contains("/forgot-password")
+		|| path.contains("");
+
+	boolean isAdminPage = path.equals("/admin-dashboard") || path.startsWith("/admin-");
+
+	// 3. Execution Processing Flow Strategy
+	if (isStaticAsset || isPublicPage) {
+	    chain.doFilter(request, response);
+	} else if (user != null) {
+	    if (isAdminPage) {
+		if ("admin".equalsIgnoreCase(user.getRole())) {
+		    chain.doFilter(request, response);
+		} else {
+		    session.setAttribute("authError", "Access Denied: Admin privileges required.");
+		    res.sendRedirect(req.getContextPath() + "/home"); // Absolute redirect path
+		}
+	    } else {
+		chain.doFilter(request, response);
+	    }
 	} else {
+	    System.out.println("Intercepted unauthorized access to path: " + path);
 	    session.setAttribute("error", "Please login first!");
-	    res.sendRedirect("home"); // Kick back to home to show login popup
+	    res.sendRedirect(req.getContextPath() + "/home"); // Absolute redirect path
 	}
     }
 }
