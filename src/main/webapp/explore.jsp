@@ -42,16 +42,16 @@
             </div>
         </div>
 
-        <div class="mb-5">
+<%--         <div class="mb-5">
             <h4 class="fw-bold mb-3">Filter by Topic</h4>
             <div class="d-flex flex-wrap gap-2">
                 <c:forEach var="t" items="${topic}">
-                    <a href="topic?id=${t.topicId}" class="btn btn-outline-primary rounded-pill px-4">
+                    <a href="categories?id=${t.topicId}" class="btn btn-outline-primary rounded-pill px-4">
                         ${t.topicName}
                     </a>
                 </c:forEach>
             </div>
-        </div>
+        </div> --%>
 
         <hr>
 
@@ -86,6 +86,10 @@
             </c:if>
         </div>
     </div>
-
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 opacity-50">&copy; 2026 CheatSheet Pro - Coding made easier.</p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -21,7 +21,7 @@ public class CommentsRepository {
 	Map<String, CommentsBean> commentMap = new HashMap<>();
 
 	String sql = "SELECT c.*, u.username FROM comments c " + "JOIN users u ON c.user_id = u.id "
-		     + "WHERE c.snippets_id = ? AND deleted_at IS NULL "
+		     + "WHERE c.snippets_id = ? AND c.deleted_at IS NULL "
 		     + "ORDER BY c.created_at ASC";
 
 	try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {

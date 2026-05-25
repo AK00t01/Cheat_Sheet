@@ -19,7 +19,7 @@ public class CheatSheetRepository {
 	String query = "SELECT s.id,mc.name as name,c.name as topic,s.title,s.bg_color,s.font_family,s.contents,s.view_count,u.username,date(s.created_at)as created_at FROM snippets s\r\n"
 		       + "	Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
 		       + "        LEFT JOIN categories mc ON c.parent_id=mc.id\r\n"
-		       + "WHERE s.deleted_at IS NULL"
+		       + "WHERE s.deleted_at IS NULL AND s.status='1' "
 		       + "		ORDER BY view_count DESC LIMIT 6";
 	List<SnippetsBean> list = new ArrayList<SnippetsBean>();
 	try {
@@ -92,7 +92,7 @@ public class CheatSheetRepository {
 		     + "        JOIN categories t ON t.id=s.categories_id\r\n"
 		     + "        JOIN categories c ON c.id=t.parent_id\r\n"
 		     + "		JOIN users u ON u.id=s.created_by \r\n"
-		     + "        WHERE t.parent_id=? AND deleted_at IS NULL;";
+		     + "        WHERE t.parent_id=? AND s.deleted_at IS NULL AND s.status='1';";
 	List<SnippetsBean> list = new ArrayList<SnippetsBean>();
 	Connection con = DBConnection.getConnection();
 	try {
@@ -173,9 +173,9 @@ public class CheatSheetRepository {
 	}
     }
 
-    public boolean adminSoftDeleteSnippet(String targetId) {
+    public boolean adminBanSnippet(String targetId) {
 
-	String sql = "UPDATE snippets SET deleted_at=NOW() WHERE id=? ";
+	String sql = "UPDATE snippets SET status='0' WHERE id=? ";
 	Connection con = DBConnection.getConnection();
 
 	try {
@@ -236,7 +236,7 @@ public class CheatSheetRepository {
 		     + "LEFT JOIN snippets s ON s.id=b.snippets_id\r\n"
 		     + "Left JOIN categories c ON s.categories_id=c.id JOIN users u ON s.created_by=u.id\r\n"
 		     + "LEFT JOIN categories mc ON c.parent_id=mc.id\r\n"
-		     + "WHERE s.deleted_at IS NULL AND b.user_id=?";
+		     + "WHERE s.deleted_at IS NULL AND s.status='1' AND b.user_id=?";
 	Connection con = DBConnection.getConnection();
 	List<SnippetsBean> list = new ArrayList<>();
 	try {

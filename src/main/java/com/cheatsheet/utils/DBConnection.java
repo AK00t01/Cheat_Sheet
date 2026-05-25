@@ -13,7 +13,7 @@ public class DBConnection {
 
 	    Class.forName("com.mysql.cj.jdbc.Driver");
 	    con = java.sql.DriverManager.getConnection("jdbc:mysql://localhost:3306/cheat_sheet", "root", "root");
-	    System.out.println(con);
+	    // System.out.println(con);
 	} catch (Exception e) {
 	    e.printStackTrace();
 	    System.out.println("Connection Error : " + e.getMessage());

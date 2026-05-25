@@ -15,6 +15,7 @@ public class MyCheatSheetRepository {
     public List<DetailCheatSheetBean> getCheatSheetsByUserId(String userId) {
 	String sql = "SELECT s.id,c.name as topic_name,c.id as topic_id,tn.name as category_name,tn.id as category_id,\r\n"
 		     + "s.title,s.contents,s.view_count,s.created_by,u.username,date(s.created_at) as created_at,"
+		     + "s.status"
 		     + "COALESCE(stats.rating, 0.0)as rating,COALESCE(stats.user_count, 0) as user_count,s.bg_color,s.font_family\r\n"
 		     + "FROM snippets s\r\n"
 		     + "JOIN categories c ON s.categories_id=c.id\r\n"
@@ -44,6 +45,7 @@ public class MyCheatSheetRepository {
 		obj.setCategoryId(rs.getString("category_id"));
 		obj.setTitle(rs.getString("title"));
 		obj.setContent(rs.getString("contents"));
+		obj.setStatus(rs.getInt("status"));
 		obj.setViewCount(rs.getInt("view_count"));
 		obj.setUserId(rs.getString("created_at"));
 		obj.setCreatedBy(rs.getString("username"));

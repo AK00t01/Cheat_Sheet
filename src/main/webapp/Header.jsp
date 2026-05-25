@@ -1,8 +1,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap.min.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap-icons.css">
+<%-- <link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap.min.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap-icons.css"> --%>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
@@ -93,4 +93,6 @@
         box-shadow: 0 0 0 0.2rem rgba(15, 111, 255, 0.12);
     }
 </style>
-<script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<%-- <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
+ --%>

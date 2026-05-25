@@ -150,7 +150,11 @@
             </div>
         </div>
     </div>
-
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 opacity-50">&copy; 2026 CheatSheet Pro - Coding made easier.</p>
+        </div>
+    </footer>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Get all elements

@@ -21,7 +21,7 @@ public class ModifyCommentServlet extends HttpServlet {
 	    throws ServletException, IOException {
 
 	String commentId = request.getParameter("id");
-	String action = request.getParameter("action"); // "delete" or "restore"
+	String action = request.getParameter("action");
 	UserBean user = (UserBean) request.getSession().getAttribute("user");
 
 	response.setContentType("application/json");

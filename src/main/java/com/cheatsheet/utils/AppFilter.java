@@ -49,6 +49,7 @@ public class AppFilter implements Filter {
 
 	// 2. Clear Path Extraction Logic
 	String path = req.getServletPath();
+	System.out.println(path);
 
 	// Check if the file requested is a static asset (CSS, JS, Images)
 	boolean isStaticAsset = path.endsWith(".css") || path.endsWith(".js") || path.contains("/css/")
@@ -58,9 +59,9 @@ public class AppFilter implements Filter {
 	boolean isPublicPage = path.equals("/") || path.equals("/home") || path.equals("/register")
 		|| path.equals("/login") || path.equals("/logout") || path.equals("/random-snippet")
 		|| path.equals("/view") || path.equals("/live-search") || path.contains("/forgot-password")
-		|| path.contains("");
+		|| path.contains("/reset-password");
 
-	boolean isAdminPage = path.equals("/admin-dashboard") || path.startsWith("/admin-");
+	boolean isAdminPage = path.equals("/admin-dashboard") || path.startsWith("/admin");
 
 	// 3. Execution Processing Flow Strategy
 	if (isStaticAsset || isPublicPage) {
@@ -78,7 +79,7 @@ public class AppFilter implements Filter {
 	    }
 	} else {
 	    System.out.println("Intercepted unauthorized access to path: " + path);
-	    session.setAttribute("error", "Please login first!");
+	    session.setAttribute("error", "Login first!");
 	    res.sendRedirect(req.getContextPath() + "/home"); // Absolute redirect path
 	}
     }

@@ -127,6 +127,13 @@
                     </div>
                     <c:remove var="success" scope="session" />
                 </c:if>
+                <c:if test="${not empty sessionScope.error}">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>${sessionScope.error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <c:remove var="error" scope="session" />
+                </c:if>
 
                 <div class="row g-3 mb-4">
                     <div class="col-12 col-sm-6 col-xl-4">
@@ -180,7 +187,7 @@
                                 <h5 class="fw-bold text-dark mb-2"><i class="bi bi-folder-plus me-2 text-primary"></i>Global Category Management</h5>
                                 <p class="text-muted small mb-3">Add a new category classification to the platform. This option will scale across user creation screens instantly.</p>
                                 
-                                <form action="admin-action" method="get" class="row g-3 align-items-center">
+                                <form action="admin-action" method="post" class="row g-3 align-items-center">
                                     <input type="hidden" name="action" value="createCategory">
                                     
                                     <div class="col-12 col-md-8 col-lg-6">
@@ -245,6 +252,7 @@
                                                 <th>Reported Infraction / Reason</th>
                                                 <th>Submitted On</th>
                                                 <th>Status</th>
+                                                <th>Admin Reason</th>
                                                 <th class="text-end pe-4">System Actions</th>
                                             </tr>
                                         </thead>
@@ -252,7 +260,7 @@
                                             <c:choose>
                                                 <c:when test="${empty snippetReportsList}">
                                                     <tr>
-                                                        <td colspan="6" class="text-center text-muted fst-italic empty-state">
+                                                        <td colspan="7" class="text-center text-muted fst-italic empty-state">
                                                             <i class="bi bi-check2-circle d-block fs-2 text-success mb-2"></i>
                                                             No active snippet reports pending review.
                                                         </td>
@@ -280,15 +288,22 @@
                                                             </td>
                                                             <td class="small text-muted">${report.createdAt}</td>
                                                             <td><span class="badge status-pill bg-warning text-dark">${report.status}</span></td>
+                                                            <td>
+                                                                <form id="snippet-review-${report.id}" action="admin-action" method="post">
+                                                                    <input type="hidden" name="reportId" value="${report.id}">
+                                                                    <input type="hidden" name="targetId" value="${report.targetId}">
+                                                                    <textarea class="form-control form-control-sm" name="adminReason" rows="2" placeholder="Optional internal note or resolution reason"></textarea>
+                                                                </form>
+                                                            </td>
                                                             <td class="text-end pe-4">
                                                                 <div class="action-stack">
-                                                                    <a href="admin-action?action=deleteSnippet&targetId=${report.targetId}&reportId=${report.id}" 
+                                                                    <button type="submit" form="snippet-review-${report.id}" name="action" value="deleteSnippet"
                                                                        class="btn btn-sm btn-danger rounded-pill px-3" onclick="return confirm('Confirm permanent deletion filter on this item?')">
                                                                         <i class="bi bi-trash-fill me-1"></i> Drop Snippet
-                                                                    </a>
-                                                                    <a href="admin-action?action=resolveReport&reportId=${report.id}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                                    </button>
+                                                                    <button type="submit" form="snippet-review-${report.id}" name="action" value="resolveReport" class="btn btn-sm btn-outline-success rounded-pill px-3">
                                                                         <i class="bi bi-check-lg me-1"></i> Dismiss
-                                                                    </a>
+                                                                    </button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -305,10 +320,12 @@
                                     <table class="table moderation-table table-hover align-middle mb-0">
                                         <thead class="table-light">
                                             <tr>
-                                                <th class="ps-4">Reporter ID</th>
+                                                <th class="ps-4">Reporter Name</th>
                                                 <th>Infraction Reason</th>
+                                                <th>Reported Comment</th>
                                                 <th>Submitted On</th>
                                                 <th>Status</th>
+                                                <th>Admin Reason</th>
                                                 <th class="text-end pe-4">System Actions</th>
                                             </tr>
                                         </thead>
@@ -316,7 +333,7 @@
                                             <c:choose>
                                                 <c:when test="${empty commentReportsList}">
                                                     <tr>
-                                                        <td colspan="5" class="text-center text-muted fst-italic empty-state">
+                                                        <td colspan="6" class="text-center text-muted fst-italic empty-state">
                                                             <i class="bi bi-chat-square-heart d-block fs-2 text-success mb-2"></i>
                                                             No active comment reports pending review.
                                                         </td>
@@ -327,8 +344,8 @@
                                                         <tr>
                                                             <td class="ps-4">
                                                                 <div class="reporter-pill">
-                                                                    <i class="bi bi-hash"></i>
-                                                                    <span>${report.userId}</span>
+                                                                    <i class="bi bi-person-circle"></i>
+                                                                    <span>${report.userName}</span>
                                                                 </div>
                                                             </td>
                                                             <td>
@@ -337,17 +354,30 @@
                                                                     <span class="text-wrap">${report.reason}</span>
                                                                 </span>
                                                             </td>
+                                                                      <td>
+                                                                <span class="reason-chip">
+                                                                    <i class="bi bi-chat-left-quote text-info fs-6"></i>
+                                                                    <span class="text-wrap">${report.commentText}</span>
+                                                                </span>
+                                                            </td>
                                                             <td class="small text-muted">${report.createdAt}</td>
                                                             <td><span class="badge status-pill bg-warning text-dark">${report.status}</span></td>
+                                                            <td>
+                                                                <form id="comment-review-${report.id}" action="admin-action" method="post">
+                                                                    <input type="hidden" name="reportId" value="${report.id}">
+                                                                    <input type="hidden" name="targetId" value="${report.targetId}">
+                                                                    <textarea class="form-control form-control-sm" name="adminReason" rows="2" placeholder="Optional internal note or resolution reason"></textarea>
+                                                                </form>
+                                                            </td>
                                                             <td class="text-end pe-4">
                                                                 <div class="action-stack">
-                                                                    <a href="admin-action?action=deleteComment&targetId=${report.targetId}&reportId=${report.id}" 
+                                                                    <button type="submit" form="comment-review-${report.id}" name="action" value="deleteComment"
                                                                        class="btn btn-sm btn-danger rounded-pill px-3" onclick="return confirm('Purge this comment block permanently?')">
                                                                         <i class="bi bi-chat-square-x-fill me-1"></i> Purge Comment
-                                                                    </a>
-                                                                    <a href="admin-action?action=resolveReport&reportId=${report.id}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                                    </button>
+                                                                    <button type="submit" form="comment-review-${report.id}" name="action" value="resolveReport" class="btn btn-sm btn-outline-success rounded-pill px-3">
                                                                         <i class="bi bi-check-lg me-1"></i> Dismiss
-                                                                    </a>
+                                                                    </button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -366,5 +396,10 @@
             </main>
         </div>
     </div>
+        <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 opacity-50">&copy; 2026 CheatSheet Pro - Coding made easier.</p>
+        </div>
+    </footer>
 </body>
 </html>

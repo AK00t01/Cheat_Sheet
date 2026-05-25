@@ -20,6 +20,7 @@ public class SearchCheatSheetRepository {
 		     + "LEFT JOIN users u ON s.created_by = u.id " // Switched to LEFT JOIN to handle deleted accounts
 								   // gracefully
 		     + "WHERE (s.title LIKE ? OR s.contents LIKE ? OR u.username LIKE ?) "
+		     + " AND s.status='1'"
 		     + "AND s.deleted_at IS NULL " // Crucial if you have soft-deletes in your database!
 		     + "ORDER BY s.created_at DESC";
 

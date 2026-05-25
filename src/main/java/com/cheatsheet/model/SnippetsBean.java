@@ -16,7 +16,10 @@ public class SnippetsBean {
     private String topicId;
     private String topicName;
 
+    private int status;
+
     private int viewCount;
+
     private String userId;
     private String createdAt;
     private String createdBy;

@@ -41,27 +41,24 @@ public class AdminDashboardServlet extends HttpServlet {
 
 	HttpSession session = request.getSession();
 	UserBean user = (UserBean) session.getAttribute("user");
-	String userId = user.getId();
-	UserBean uObj = uRepo.getUserById(userId);
-	request.setAttribute("user", uObj);
+	if (user != null) {
+	    UserBean uObj = uRepo.getUserById(user.getId());
+	    request.setAttribute("user", uObj);
+	}
 
-	// 2. Query Dashboard Metric Card Counts
 	int pendingReportsCount = rRepo.countPendingReports();
 	int totalSnippets = rRepo.countActiveSnippets();
 	int totalUsers = rRepo.countTotalUsers();
 
-	// 3. Query Polymorphic Data Lists split by Category Targets
 	List<ReportBean> snippetReports = rRepo.getReportsByTargetType("snippet");
 	List<ReportBean> commentReports = rRepo.getReportsByTargetType("comment");
 
-	// 4. Bind Attributes directly into the Request Scope
 	request.setAttribute("pendingReportsCount", pendingReportsCount);
 	request.setAttribute("totalSnippetsCount", totalSnippets);
 	request.setAttribute("totalUsersCount", totalUsers);
 	request.setAttribute("snippetReportsList", snippetReports);
 	request.setAttribute("commentReportsList", commentReports);
 
-	// 5. Forward cleanly to view layout page
 	request.getRequestDispatcher("admin_dashboard.jsp").forward(request, response);
     }
 

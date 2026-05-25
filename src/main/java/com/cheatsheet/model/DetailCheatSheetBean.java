@@ -19,6 +19,8 @@ public class DetailCheatSheetBean {
     private String createdBy;
     private LocalDate editedTime;
 
+    private int status;
+
     private String categoryId;
     private String categoryName;
     private String topicId;

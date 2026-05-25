@@ -39,54 +39,79 @@ public class AdminActionServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
-
-	HttpSession session = request.getSession();
-	String action = request.getParameter("action");
-	String reportId = request.getParameter("reportId");
-	String targetId = request.getParameter("targetId");
-	String catName = request.getParameter("catName");
-	boolean outcome = false;
-
-	if ("resolveReport".equalsIgnoreCase(action)) {
-	    // Dismiss report: Simply change status flag to 'RESOLVED'
-	    outcome = rRepo.updateReportStatus(reportId, "RESOLVED");
-	    session.setAttribute("success", "Violation ticket dismissed successfully.");
-
-	} else if ("deleteSnippet".equalsIgnoreCase(action)) {
-	    // Admin Action: Soft-delete snippet violation and mark ticket resolved
-	    boolean dbSnippetDropped = sRepo.adminSoftDeleteSnippet(targetId);
-	    boolean ticketResolved = rRepo.updateReportStatus(reportId, "RESOLVED");
-	    outcome = dbSnippetDropped && ticketResolved;
-	    session.setAttribute("success", "Target snippet removed and ticket resolved.");
-
-	} else if ("deleteComment".equalsIgnoreCase(action)) {
-	    // Admin Action: Cascade purge reported bad comment block
-	    boolean dbCommentDropped = cRepo.adminSoftDeleteComment(targetId);
-	    boolean ticketResolved = rRepo.updateReportStatus(reportId, "RESOLVED");
-	    outcome = dbCommentDropped && ticketResolved;
-	    session.setAttribute("success", "Target comment block purged and ticket resolved.");
-	} else if ("createCategory".equalsIgnoreCase(action)) {
-	    if (catName != null && !catName.isBlank()) {
-		ccRepo.createCategory(catName.trim());
-		session.setAttribute("success", "Category '" + catName.trim() + "' created successfully.");
-	    } else {
-		session.setAttribute("error", "Category name cannot be empty.");
-	    }
-
-	}
-
-	// Send administrator cleanly back to dashboard interface tracking screen
 	response.sendRedirect("admin-dashboard");
     }
 
-    /**
-     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-     *      response)
-     */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
 	    throws ServletException, IOException {
-	// TODO Auto-generated method stub
-	doGet(request, response);
+	HttpSession session = request.getSession();
+	String action = trimToNull(request.getParameter("action"));
+	String reportId = trimToNull(request.getParameter("reportId"));
+	String targetId = trimToNull(request.getParameter("targetId"));
+	String catName = trimToNull(request.getParameter("catName"));
+	String adminReason = trimToNull(request.getParameter("adminReason"));
+
+	if ("resolveReport".equalsIgnoreCase(action)) {
+	    if (reportId == null) {
+		session.setAttribute("error", "Missing report identifier.");
+	    } else if (rRepo.updateReportStatusByReportId(reportId, rRepo.getResolvedStatus(), adminReason)) {
+		session.setAttribute("success", "Violation ticket dismissed successfully.");
+	    } else {
+		session.setAttribute("error", "Unable to dismiss the selected report.");
+	    }
+
+	} else if ("deleteSnippet".equalsIgnoreCase(action)) {
+	    if (reportId == null || targetId == null) {
+		session.setAttribute("error", "Missing snippet moderation details.");
+	    } else {
+		boolean dbSnippetDropped = sRepo.adminBanSnippet(targetId);
+		boolean reportsResolved = rRepo.updatePendingReportsStatusByTargetId(targetId, rRepo.getResolvedStatus(), adminReason);
+
+		if (dbSnippetDropped && reportsResolved) {
+		    session.setAttribute("success", "Target snippet removed and all related pending reports were resolved.");
+		} else {
+		    session.setAttribute("error", "Unable to remove the snippet or resolve its related reports.");
+		}
+	    }
+
+	} else if ("deleteComment".equalsIgnoreCase(action)) {
+	    if (reportId == null || targetId == null) {
+		session.setAttribute("error", "Missing comment moderation details.");
+	    } else {
+		boolean dbCommentDropped = cRepo.adminSoftDeleteComment(targetId);
+		boolean reportsResolved = rRepo.updatePendingReportsStatusByTargetId(targetId, rRepo.getResolvedStatus(), adminReason);
+
+		if (dbCommentDropped && reportsResolved) {
+		    session.setAttribute("success", "Target comment block purged and all related pending reports were resolved.");
+		} else {
+		    session.setAttribute("error", "Unable to purge the comment or resolve its related reports.");
+		}
+	    }
+	} else if ("createCategory".equalsIgnoreCase(action)) {
+	    if (catName != null) {
+		if (ccRepo.createCategory(catName)) {
+		    session.setAttribute("success", "Category '" + catName + "' created successfully.");
+		} else {
+		    session.setAttribute("error", "Category already exists or could not be created.");
+		}
+	    } else {
+		session.setAttribute("error", "Category name cannot be empty.");
+	    }
+	} else {
+	    session.setAttribute("error", "Unknown admin action.");
+
+	}
+
+	response.sendRedirect("admin-dashboard");
+    }
+
+    private String trimToNull(String value) {
+	if (value == null) {
+	    return null;
+	}
+
+	String trimmed = value.trim();
+	return trimmed.isEmpty() ? null : trimmed;
     }
 
 }
